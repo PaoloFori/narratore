@@ -1,0 +1,17 @@
+{
+  "name": "Il Narratore",
+  "short_name": "Narratore",
+  "description": "Giochi da raccontare: Lupus in Fabula, Mister White, La Spia.",
+  "lang": "it",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0e1320",
+  "theme_color": "#0e1320",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
