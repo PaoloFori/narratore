@@ -754,8 +754,42 @@ function mwCheck(S){
   var a=S.players.filter(function(p){return p.alive!==false;}),cc=0,uu=0,ww=0;
   a.forEach(function(p){if(p.role==='civile')cc++;else if(p.role==='under')uu++;else ww++;});
   if(uu+ww===0)return 'civili';
-  if(cc<=uu+ww)return 'infiltrati';
+  if(a.length<=2)return 'infiltrati';
   return null;
+}
+var SP={
+ disfatto:{n:'Il So’ Disfatto',min:3,d:'Vince 4 punti extra se viene eliminato per primo!'},
+ boomerang:{n:'Il Boomerang',min:3,d:'La prima volta che riceve la maggioranza dei voti, invece di essere eliminato respinge i voti su coloro che li hanno espressi!'},
+ dea:{n:'Dea della Giustizia',min:3,d:'In caso di pareggio nella votazione, deciderà chi verrà eliminato (anche quando eliminata).'},
+ fantasma:{n:'Il Fantasma',min:3,d:'Può ancora votare anche dopo essere stato eliminato!'},
+ amanti:{n:'Gli Amanti',min:5,pair:1,d:'Due giocatori si amano. Se uno di loro viene eliminato, esce anche l’altro.'},
+ mimo:{n:'Il Mimo',min:3,game:1,d:'Ogni turno, 1 giocatore deve mimare la propria parola segreta senza parlare (solo di persona o con video).'},
+ falafel:{n:'Il Venditore di Falafel',min:4,d:'Riceve un’abilità casuale. Tenta la fortuna e lasciati sorprendere!'},
+ vend:{n:'La Vendicatrice',min:5,d:'Quando la Vendicatrice viene eliminata, può cacciare un altro giocatore a sua volta.'},
+ duello:{n:'I Duellanti',min:5,pair:1,d:'Due giocatori sono in un duello segreto. Il primo ad essere eliminato perde 2 punti, l’altro ne vince 2.'}
+};
+var SPORD=['disfatto','boomerang','dea','fantasma','amanti','mimo','falafel','vend','duello'];
+var FALAFEL=['Doppio voto: il tuo voto vale per due.','Veto: una volta puoi annullare il voto contro di te.','Spia: chiedi al Narratore se un giocatore ha la tua stessa parola.','Silenzio: una volta puoi far saltare il turno di un giocatore.','Scambio: una volta puoi dire la tua parola come seconda parola.','Immunità: sei salvo dal primo voto contro di te.'];
+function spNeed(g){var t=0;SPORD.forEach(function(k){if(g.sp&&g.sp[k]&&!SP[k].game)t+=SP[k].pair?2:1;});return t;}
+function mwMime(S){var c=S.players.filter(function(p){return p.alive!==false&&p.role!=='white';});return c.length?pick(c).id:null;}
+function mwKill(S,p){
+  var g=S.g;if(p.alive===false)return;
+  p.alive=false;g.outs.push(p.id);
+  if(!g.firstDone){g.firstDone=true;if(p.sp==='disfatto'){g.pts[p.id]=(g.pts[p.id]||0)+4;g.notes.push(p.name+' era il So’ Disfatto: eliminato per primo, +4 punti!');}}
+  if(p.sp==='duello'&&!g.duelDone){g.duelDone=true;g.pts[p.id]=(g.pts[p.id]||0)-2;var o=S.players.find(function(x){return x.sp==='duello'&&x.id!==p.id;});if(o){g.pts[o.id]=(g.pts[o.id]||0)+2;g.notes.push('Duello: '+p.name+' perde 2 punti, '+o.name+' ne vince 2.');}}
+  if(p.role==='white')g.q.push({t:'guess',id:p.id});
+  if(p.sp==='vend')g.q.push({t:'veng',id:p.id});
+  if(p.sp==='amanti'){var l=S.players.find(function(x){return x.sp==='amanti'&&x.id!==p.id&&x.alive!==false;});if(l){g.notes.push(l.name+' era l’amante di '+p.name+': esce anche lui/lei.');mwKill(S,l);}}
+}
+function mwPts(S){
+  var g=S.g,l=S.players.filter(function(p){return g.pts&&g.pts[p.id];});
+  if(!l.length)return '';
+  return '<div class="blkh mt20"><h2>Punti</h2></div><ul class="rows">'+l.map(function(p){var v=g.pts[p.id];return '<li class="row"><span class="nm">'+esc(p.name)+'</span><span class="rx"><b>'+(v>0?'+':'')+v+'</b></span></li>';}).join('')+'</ul>';
+}
+function mwFlow(S){
+  var g=S.g;
+  if(g.q.length){g.cur=g.q.shift();S.phase=g.cur.t;return;}
+  g.cur=null;g.winner=mwCheck(S);S.phase='result';
 }
 function mwNextStarter(S){
   var i=S.players.findIndex(function(p){return p.id===S.g.starter;}),n=S.players.length;
@@ -766,26 +800,28 @@ function mwNextStarter(S){
 function mwOrder(S){return rotate(S.players.filter(function(p){return p.alive!==false;}),S.g.starter);}
 function mwEnd(S){
   var w=S.g.winner;
-  var t=w==='civili'?['Vincono i Civili','Tutti gli infiltrati sono stati scovati.','vill']:w==='infiltrati'?['Vincono gli Infiltrati','Hanno ingannato il gruppo fino alla fine.','lupi']:['Mister White indovina!','Ha capito la parola dei civili e vince da solo.','amanti'];
+  var t=w==='civili'?['Vincono i Civili','Tutti gli infiltrati sono stati scovati.','vill']:w==='infiltrati'?['Vincono gli Infiltrati','Sono rimasti in due: hanno ingannato il gruppo fino alla fine.','lupi']:['Mister White indovina!','Ha capito la parola dei civili e vince da solo.','amanti'];
   return {title:t[0],sub:t[1],cls:t[2]};
 }
 SERATA.games.mrwhite=SERATA.party({
   key:'mrwhite',name:'Mister White',icon:'mask',
   lead:'Tutti ricevono una parola: quasi tutti la stessa, uno una parola simile, e Mister White nessuna. Si gira in cerchio dicendo una parola a testa, poi si vota chi eliminare.',
-  fresh:function(){return {auto:true,under:1,white:1,cw:'',uw:'',starter:null,round:1,out:null,winner:null,guess:'',guessOk:null};},
-  again:function(S){var g=S.g;return {auto:g.auto,under:g.under,white:g.white,cw:'',uw:'',starter:null,round:1,out:null,winner:null,guess:'',guessOk:null};},
+  fresh:function(){return {auto:true,under:1,white:1,cw:'',uw:'',starter:null,round:1,out:null,winner:null,guess:'',guessOk:null,sp:{},outs:[],notes:[],q:[],cur:null,pts:{},mime:null};},
+  again:function(S){var g=S.g;return {auto:g.auto,under:g.under,white:g.white,cw:'',uw:'',starter:null,round:1,out:null,winner:null,guess:'',guessOk:null,sp:g.sp||{},outs:[],notes:[],q:[],cur:null,pts:{},mime:null};},
   setup:function(S,c){
     var n=S.players.length,k=mwCnt(S),civ=n-k.under-k.white,g=S.g;
     return '<section class="blk"><div class="blkh"><h2>Ruoli segreti</h2><span class="muted">'+Math.max(civ,0)+' civili · '+k.under+' infiltrati · '+k.white+' Mister White</span></div><div class="card">'
     +step('Infiltrati','Hanno una parola simile ma diversa, e non sanno di esserlo.',k.under,'um','up')
     +step('Mister White','Non ha nessuna parola.',k.white,'wm','wp')
-    +'<p class="hint">'+(g.auto?'Numeri automatici in base ai giocatori.':'Numeri impostati a mano. <button class="lnk" data-a="mwAuto">Torna ad Auto</button>')+'</p></div></section>';
+    +'<p class="hint">'+(g.auto?'Numeri automatici in base ai giocatori.':'Numeri impostati a mano. <button class="lnk" data-a="mwAuto">Torna ad Auto</button>')+'</p></div></section>'
+    +'<section class="blk"><div class="blkh"><h2>Ruoli speciali</h2></div><div class="card">'+SPORD.map(function(key){var r=SP[key],ok=n>=r.min;return '<div class="opt"><div class="ot"><b>'+esc(r.n)+'</b><small>'+esc(r.d)+(ok?'':' (dai '+r.min+' giocatori in su)')+'</small></div><label class="sws"><input type="checkbox" data-a="mwSp" data-k="'+key+'" '+(g.sp&&g.sp[key]&&ok?'checked':'')+(ok?'':' disabled')+' aria-label="'+esc(r.n)+'"><span></span></label></div>';}).join('')+'</div></section>';
   },
   problem:function(S){
     var n=S.players.length,k=mwCnt(S);
     if(n<3)return 'Servono almeno 3 persone.';
     if(k.under+k.white<1)return 'Serve almeno un infiltrato o un Mister White.';
     if(n-k.under-k.white<=k.under+k.white)return 'Troppi infiltrati: i civili devono essere più numerosi degli altri.';
+    if(spNeed(S.g)>n)return 'Troppi ruoli speciali per questo numero di giocatori.';
     return '';
   },
   deal:function(S){
@@ -798,16 +834,28 @@ SERATA.games.mrwhite=SERATA.party({
     S.players.forEach(function(p,j){p.role=list[j];p.word=p.role==='civile'?g.cw:p.role==='under'?g.uw:null;p.alive=true;});
     var cand=S.players.filter(function(p){return p.role!=='white';});
     g.starter=pick(cand).id;g.round=1;g.out=null;g.winner=null;g.guess='';g.guessOk=null;
+    g.outs=[];g.notes=[];g.q=[];g.cur=null;g.pts={};g.firstDone=false;g.duelDone=false;g.boomUsed=false;
+    S.players.forEach(function(p){p.sp=null;p.fal=null;});
+    var pool=shuffle(S.players.slice());
+    SPORD.forEach(function(key){
+      var r=SP[key];if(!g.sp||!g.sp[key]||S.players.length<r.min||r.game)return;
+      for(var t=0;t<(r.pair?2:1);t++){var q=pool.pop();if(!q)return;q.sp=key;if(key==='falafel')q.fal=pick(FALAFEL);}
+    });
+    g.mime=g.sp&&g.sp.mimo?mwMime(S):null;
   },
   begin:function(S){S.phase='play';},
   card:function(S,p){
-    if(p.role==='white')return {ico:'mask',title:'Sei',big:'Mister White',sub:'Non hai nessuna parola.',text:'Ascolta gli altri e bluffa. Se vieni eliminato puoi ancora vincere indovinando la parola dei civili.'};
-    return {ico:'eye',title:'La tua parola',big:p.word,sub:'Descrivila senza dirla.',text:'Non sai se gli altri hanno la tua stessa parola: scoprilo ascoltando.'};
+    var ex='';
+    if(p.sp){var r=SP[p.sp];ex=' — Ruolo speciale: '+r.n+'. '+r.d;
+      if(p.sp==='amanti'||p.sp==='duello'){var o=S.players.find(function(x){return x.sp===p.sp&&x.id!==p.id;});if(o)ex+=' Il tuo '+(p.sp==='amanti'?'amore':'avversario')+': '+o.name+'.';}
+      if(p.sp==='falafel'&&p.fal)ex+=' La tua abilità: '+p.fal;}
+    if(p.role==='white')return {ico:'mask',title:'Sei',big:'Mister White',sub:'Non hai nessuna parola.',text:'Ascolta gli altri e bluffa. Se vieni eliminato puoi ancora vincere indovinando la parola dei civili.'+ex};
+    return {ico:'eye',title:'La tua parola',big:p.word,sub:'Descrivila senza dirla.',text:'Non sai se gli altri hanno la tua stessa parola: scoprilo ascoltando.'+ex};
   },
-  pubPlayer:function(S,p){var x={};if(p.alive===false||S.phase==='end'){x.rname=RL[p.role];x.team=p.role;}if(S.phase==='end')x.word=p.word||null;return x;},
+  pubPlayer:function(S,p){var x={};if(p.alive===false||S.phase==='end'){x.rname=RL[p.role];x.team=p.role;if(p.sp)x.spn=SP[p.sp].n;}if(S.phase==='end')x.word=p.word||null;return x;},
   pub:function(S){
-    var g=S.g,o={round:g.round,starter:g.starter,order:S.phase==='setup'?[]:mwOrder(S).map(function(p){return p.id;}),winner:g.winner,out:g.out?{id:g.out.id,rname:g.out.id!=null?RL[g.out.role]:null,guessOk:g.guessOk}:null};
-    if(S.phase==='end'){o.endTxt=mwEnd(S);o.words={c:g.cw,u:g.uw};}
+    var g=S.g,o={round:g.round,starter:g.starter,order:S.phase==='setup'?[]:mwOrder(S).map(function(p){return p.id;}),winner:g.winner,cur:g.cur||null,mime:g.mime==null?null:g.mime,notes:g.notes||[],outs:(g.outs||[]).map(function(id){var p=S.players.find(function(x){return x.id===id;});return {id:id,rname:p?RL[p.role]:'',spn:p&&p.sp?SP[p.sp].n:''};})};
+    if(S.phase==='end'){o.endTxt=mwEnd(S);o.words={c:g.cw,u:g.uw};o.pts=g.pts||{};}
     return o;
   },
   view:function(S,c){
@@ -815,19 +863,23 @@ SERATA.games.mrwhite=SERATA.party({
     var stats='<div class="stats"><span>Giro '+g.round+'</span><span>In gioco '+alive.length+'</span></div>';
     if(ph==='play'){
       var ord=mwOrder(S);
-      return stats+'<h1 class="h1">Una parola a testa</h1><p class="lead">Ognuno dice una sola parola che descrive la sua, senza ripeterla e senza essere troppo ovvio. Si gira in questo ordine, poi si discute.</p><ol class="rows ord">'+ord.map(function(p,i){return '<li class="row"><span class="nm"><b>'+(i+1)+'.</b> '+esc(p.name)+'</span>'+(i===0?'<span class="chip">Inizia</span>':'')+'</li>';}).join('')+'</ol><div class="bar"><button class="btn pri block" data-a="mwVote">Si vota</button></div>';
+      return stats+'<h1 class="h1">Una parola a testa</h1><p class="lead">Ognuno dice una sola parola che descrive la sua, senza ripeterla e senza essere troppo ovvio. Si gira in questo ordine, poi si discute.</p><ol class="rows ord">'+ord.map(function(p,i){return '<li class="row"><span class="nm"><b>'+(i+1)+'.</b> '+esc(p.name)+'</span>'+(i===0?'<span class="chip">Inizia</span>':'')+'</li>';}).join('')+'</ol>'+(g.mime!=null&&P(g.mime)?'<div class="spell mt14">'+ico('mask',22)+'<span><b>Il Mimo:</b> '+esc(P(g.mime).name)+' deve mimare la propria parola, senza parlare.</span></div>':'')+'<div class="bar"><button class="btn pri block" data-a="mwVote">Si vota</button></div>';
     }
-    if(ph==='vote')return stats+'<h1 class="stept">Chi viene eliminato?</h1>'+grid(c,alive)+'<div class="bar"><button class="btn" data-a="mwBack">'+ico('back')+'Indietro</button><button class="btn" data-a="mwNone">Nessuno (parità)</button><button class="btn bad" data-a="mwGo" '+(c.T.sel.length?'':'disabled')+'>Elimina</button></div>';
-    if(ph==='guess'){var o=P(g.out.id);return '<p class="kick">'+esc(o.name)+'</p><h1 class="big">Era Mister White!</h1><p class="lead">Ha un ultimo tentativo: se indovina la parola dei civili, vince da solo. Scrivila qui, oppure lasciagli dire la parola ad alta voce e inseriscila tu.</p><form data-form="guess" class="add"><input id="guessIn" class="field" type="text" autocomplete="off" placeholder="La parola dei civili" value="'+esc(g.guess)+'"><button class="btn pri" type="submit">Prova</button></form>';}
+    if(ph==='vote')return stats+'<h1 class="stept">Chi viene eliminato?</h1>'+grid(c,alive)+'<div class="bar"><button class="btn" data-a="mwBack">'+ico('back')+'Indietro</button><button class="btn" data-a="mwNone">Parità</button><button class="btn bad" data-a="mwGo" '+(c.T.sel.length?'':'disabled')+'>Elimina</button></div>';
+    if(ph==='dea')return stats+'<h1 class="stept">Parità: decide la Dea della Giustizia</h1><p class="lead">La Dea sceglie chi viene eliminato.</p>'+grid(c,alive)+'<div class="bar"><button class="btn" data-a="mwDeaNo">Nessuno</button><button class="btn bad" data-a="mwDeaGo" '+(c.T.sel.length?'':'disabled')+'>Elimina</button></div>';
+    if(ph==='veng'){var vv=P(g.cur.id);return stats+'<p class="kick">'+esc(vv.name)+'</p><h1 class="big">Era la Vendicatrice!</h1><p class="lead">Può cacciare un altro giocatore. Chi sceglie?</p>'+grid(c,alive)+'<div class="bar"><button class="btn" data-a="mwVengNo">Nessuno</button><button class="btn bad" data-a="mwVengGo" '+(c.T.sel.length?'':'disabled')+'>Elimina</button></div>';}
+    if(ph==='boom'){var bb=P(g.cur.id);return stats+'<p class="kick">'+esc(bb.name)+'</p><h1 class="big">Era il Boomerang!</h1><p class="lead">Non viene eliminato: respinge i voti. Seleziona chi lo aveva votato: verranno eliminati loro.</p><div class="grid">'+alive.filter(function(p){return p.id!==bb.id;}).map(function(p){var on=c.T.sel.indexOf(p.id)>=0;return '<button class="pl" data-a="mwTog" data-id="'+p.id+'" aria-pressed="'+on+'"><span class="nm">'+esc(p.name)+'</span>'+(on?'<span class="mk">'+ico('check',14)+'</span>':'')+'</button>';}).join('')+'</div><div class="bar"><button class="btn bad block" data-a="mwBoomGo">Elimina i votanti</button></div>';}
+    if(ph==='guess'){var o=P(g.cur.id);return '<p class="kick">'+esc(o.name)+'</p><h1 class="big">Era Mister White!</h1><p class="lead">Ha un ultimo tentativo: se indovina la parola dei civili, vince da solo. Scrivila qui, oppure lasciagli dire la parola ad alta voce e inseriscila tu.</p><form data-form="guess" class="add"><input id="guessIn" class="field" type="text" autocomplete="off" placeholder="La parola dei civili" value="'+esc(g.guess)+'"><button class="btn pri" type="submit">Prova</button></form>';}
     if(ph==='result'){
-      var out=g.out,body;
-      if(out.id==null)body='<div class="calm">Parità: nessuno viene eliminato.</div>';
-      else{var q=P(out.id);body='<div class="deaths"><div class="death"><div><b>'+esc(q.name)+'</b><small>'+(q.role==='white'?'Mister White':q.role==='under'?'Era un infiltrato':'Era un civile')+'</small></div></div></div>'+(g.guessOk===false?'<div class="spell">'+ico('mask',22)+'<span>Mister White non ha indovinato la parola.</span></div>':'');}
+      var body;
+      if(!g.outs.length)body='<div class="calm">Nessuno viene eliminato.</div>';
+      else body='<div class="deaths">'+g.outs.map(function(id){var q=P(id);return '<div class="death"><div><b>'+esc(q.name)+'</b><small>'+(q.role==='white'?'Mister White':q.role==='under'?'Era un infiltrato':'Era un civile')+(q.sp?' · '+esc(SP[q.sp].n):'')+'</small></div></div>';}).join('')+'</div>';
+      body+=g.notes.map(function(t){return '<div class="spell">'+ico('mask',22)+'<span>'+esc(t)+'</span></div>';}).join('');
       return stats+'<h1 class="big">Il verdetto</h1>'+body+'<div class="bar"><button class="btn pri block" data-a="mwNext">'+(g.winner?'Scopri com’è finita':'Prossimo giro')+'</button></div>';
     }
     if(ph==='end'){
       var e=mwEnd(S);
-      return '<div class="banner '+e.cls+'"><h1 class="big">'+esc(e.title)+'</h1><p>'+esc(e.sub)+'</p></div><div class="card"><p class="muted">Parola dei civili</p><div class="code" style="font-size:2.2rem;letter-spacing:.04em">'+esc(g.cw)+'</div><p class="muted">Parola degli infiltrati: <b>'+esc(g.uw)+'</b></p></div><div class="blkh mt20"><h2>Chi era chi</h2></div><ul class="rows">'+S.players.map(function(p){return '<li class="row '+(p.alive===false?'dead':'')+'"><span class="nm">'+esc(p.name)+'</span><span class="rx"><span class="tag '+(p.role==='civile'?'vill':p.role==='white'?'spec':'lupi')+'">'+esc(RL[p.role])+(p.word?' · '+esc(p.word):'')+'</span></span></li>';}).join('')+'</ul><div class="bar"><button class="btn" data-a="again">Stessi giocatori</button><button class="btn pri" data-a="newgame">Nuova partita</button></div>';
+      return '<div class="banner '+e.cls+'"><h1 class="big">'+esc(e.title)+'</h1><p>'+esc(e.sub)+'</p></div><div class="card"><p class="muted">Parola dei civili</p><div class="code" style="font-size:2.2rem;letter-spacing:.04em">'+esc(g.cw)+'</div><p class="muted">Parola degli infiltrati: <b>'+esc(g.uw)+'</b></p></div><div class="blkh mt20"><h2>Chi era chi</h2></div><ul class="rows">'+S.players.map(function(p){return '<li class="row '+(p.alive===false?'dead':'')+'"><span class="nm">'+esc(p.name)+'</span><span class="rx"><span class="tag '+(p.role==='civile'?'vill':p.role==='white'?'spec':'lupi')+'">'+esc(RL[p.role])+(p.word?' · '+esc(p.word):'')+(p.sp?' · '+esc(SP[p.sp].n):'')+'</span></span></li>';}).join('')+'</ul>'+mwPts(S)+'<div class="bar"><button class="btn" data-a="again">Stessi giocatori</button><button class="btn pri" data-a="newgame">Nuova partita</button></div>';
     }
     return '';
   },
@@ -841,14 +893,25 @@ SERATA.games.mrwhite=SERATA.party({
       case 'mwAuto':g.auto=true;return c.commit();
       case 'mwVote':S.phase='vote';c.T.sel=[];return c.commit();
       case 'mwBack':S.phase='play';return c.commit();
-      case 'mwNone':g.out={id:null};S.phase='result';c.T.sel=[];return c.commit();
+      case 'mwSp':g.sp=g.sp||{};g.sp[d.k]=!g.sp[d.k];return c.commit();
+      case 'mwTog':{var ix=c.T.sel.indexOf(+d.id);if(ix>=0)c.T.sel.splice(ix,1);else c.T.sel.push(+d.id);return c.render();}
+      case 'mwNone':
+        g.outs=[];g.notes=[];g.q=[];c.T.sel=[];
+        if(S.players.some(function(x){return x.sp==='dea';})){g.notes.push('Pareggio: decide la Dea della Giustizia.');S.phase='dea';return c.commit();}
+        g.winner=null;S.phase='result';return c.commit();
+      case 'mwDeaNo':case 'mwVengNo':c.T.sel=[];mwFlow(S);return c.commit();
+      case 'mwDeaGo':case 'mwVengGo':{
+        var t=c.P(c.T.sel[0]);c.T.sel=[];if(t)mwKill(S,t);mwFlow(S);return c.commit();}
+      case 'mwBoomGo':{
+        var ids=c.T.sel.slice();c.T.sel=[];ids.forEach(function(i){var t=c.P(i);if(t)mwKill(S,t);});
+        mwFlow(S);return c.commit();}
       case 'mwGo':{
-        var id=c.T.sel[0],p=c.P(id);if(!p)return;p.alive=false;g.out={id:id,role:p.role};c.T.sel=[];g.guess='';g.guessOk=null;
-        if(p.role==='white'){S.phase='guess';return c.commit();}
-        g.winner=mwCheck(S);S.phase='result';return c.commit();}
+        var id=c.T.sel[0],p=c.P(id);if(!p)return;c.T.sel=[];g.guess='';g.guessOk=null;g.outs=[];g.notes=[];g.q=[];
+        if(p.sp==='boomerang'&&!g.boomUsed){g.boomUsed=true;g.notes.push(p.name+' era il Boomerang: ha respinto i voti!');g.cur={t:'boom',id:id};S.phase='boom';return c.commit();}
+        mwKill(S,p);mwFlow(S);return c.commit();}
       case 'mwNext':
         if(g.winner){S.phase='end';return c.commit();}
-        g.round++;g.starter=mwNextStarter(S);g.out=null;S.phase='play';return c.commit();
+        g.round++;g.starter=mwNextStarter(S);g.out=null;g.outs=[];g.notes=[];g.mime=g.sp&&g.sp.mimo?mwMime(S):null;S.phase='play';return c.commit();
     }
   },
   input:function(el,c){if(el.id==='guessIn')c.S.g.guess=el.value;},
@@ -858,23 +921,26 @@ SERATA.games.mrwhite=SERATA.party({
     if(!norm(v))return;
     g.guess=v;
     if(norm(v)===norm(g.cw)){g.winner='white';g.guessOk=true;S.phase='end';return c.commit();}
-    g.guessOk=false;g.winner=mwCheck(S);S.phase='result';c.commit();
+    g.guessOk=false;g.notes.push('Mister White non ha indovinato la parola.');mwFlow(S);c.commit();
   },
   pview:function(c,pub,card,me){
     var ph=pub.phase,out='',pn=function(id){var p=pub.players.find(function(x){return x.id===id;});return p?p.name:'';};
     if(ph==='cards')return '<p class="hint">Quando tutti hanno visto la propria carta, il Narratore inizia.</p>';
     if(ph==='play'){
-      out+='<h1 class="h1 mt14">Giro '+pub.round+'</h1><p class="lead">Una parola a testa, in quest’ordine:</p><ol class="rows ord">'+pub.order.map(function(id,i){return '<li class="row"><span class="nm"><b>'+(i+1)+'.</b> '+esc(pn(id))+(id===me.id?' (tu)':'')+'</span>'+(i===0?'<span class="chip">Inizia</span>':'')+'</li>';}).join('')+'</ol>';
+      out+='<h1 class="h1 mt14">Giro '+pub.round+'</h1><p class="lead">Una parola a testa, in quest’ordine:</p><ol class="rows ord">'+pub.order.map(function(id,i){return '<li class="row"><span class="nm"><b>'+(i+1)+'.</b> '+esc(pn(id))+(id===me.id?' (tu)':'')+'</span>'+(i===0?'<span class="chip">Inizia</span>':'')+'</li>';}).join('')+'</ol>'+(pub.mime!=null?'<div class="spell mt14">'+ico('mask',22)+'<span><b>Il Mimo:</b> '+esc(pn(pub.mime))+' deve mimare la propria parola, senza parlare.</span></div>':'');
     }else if(ph==='vote')out+='<div class="nightbox mt14"><h1 class="big">Si vota.</h1><p>Decidete insieme chi eliminare.</p></div>';
-    else if(ph==='guess')out+='<div class="spell mt14">'+ico('mask',22)+'<span>'+esc(pn(pub.out&&pub.out.id))+' era Mister White e sta provando a indovinare la parola.</span></div>';
+    else if(ph==='guess')out+='<div class="spell mt14">'+ico('mask',22)+'<span>'+esc(pn(pub.cur&&pub.cur.id))+' era Mister White e sta provando a indovinare la parola.</span></div>';
+    else if(ph==='dea')out+='<div class="nightbox mt14"><h1 class="big">Parità.</h1><p>Decide la Dea della Giustizia.</p></div>';
+    else if(ph==='veng')out+='<div class="spell mt14">'+ico('mask',22)+'<span>'+esc(pn(pub.cur&&pub.cur.id))+' era la Vendicatrice: può eliminare un altro giocatore.</span></div>';
+    else if(ph==='boom')out+='<div class="spell mt14">'+ico('mask',22)+'<span>'+esc(pn(pub.cur&&pub.cur.id))+' era il Boomerang: respinge i voti!</span></div>';
     else if(ph==='result'){
-      var o=pub.out;
-      out+='<h1 class="big mt14">Il verdetto</h1>'+(o&&o.id!=null?'<div class="deaths"><div class="death"><div><b>'+esc(pn(o.id))+'</b><small>'+esc(o.rname)+'</small></div></div></div>'+(o.guessOk===false?'<div class="spell">'+ico('mask',22)+'<span>Mister White non ha indovinato.</span></div>':''):'<div class="calm">Parità: nessuno viene eliminato.</div>');
+      var os=pub.outs||[];
+      out+='<h1 class="big mt14">Il verdetto</h1>'+(os.length?'<div class="deaths">'+os.map(function(o){return '<div class="death"><div><b>'+esc(pn(o.id))+'</b><small>'+esc(o.rname)+(o.spn?' · '+esc(o.spn):'')+'</small></div></div>';}).join('')+'</div>':'<div class="calm">Nessuno viene eliminato.</div>')+(pub.notes||[]).map(function(t){return '<div class="spell">'+ico('mask',22)+'<span>'+esc(t)+'</span></div>';}).join('');
     }else if(ph==='end'){
       var et=pub.endTxt||{title:'Fine',sub:'',cls:'vill'};
-      out+='<div class="banner '+et.cls+' mt14"><h1 class="big">'+esc(et.title)+'</h1><p>'+esc(et.sub)+'</p></div><div class="card"><p class="muted">Parola dei civili</p><div class="code" style="font-size:2.2rem;letter-spacing:.04em">'+esc(pub.words.c)+'</div><p class="muted">Parola degli infiltrati: <b>'+esc(pub.words.u)+'</b></p></div><ul class="rows">'+pub.players.map(function(p){return '<li class="row '+(p.alive?'':'dead')+'"><span class="nm">'+esc(p.name)+(p.id===me.id?' (tu)':'')+'</span><span class="rx"><span class="tag '+(p.team==='civile'?'vill':p.team==='white'?'spec':'lupi')+'">'+esc(p.rname||'')+(p.word?' · '+esc(p.word):'')+'</span></span></li>';}).join('')+'</ul>';
+      out+='<div class="banner '+et.cls+' mt14"><h1 class="big">'+esc(et.title)+'</h1><p>'+esc(et.sub)+'</p></div><div class="card"><p class="muted">Parola dei civili</p><div class="code" style="font-size:2.2rem;letter-spacing:.04em">'+esc(pub.words.c)+'</div><p class="muted">Parola degli infiltrati: <b>'+esc(pub.words.u)+'</b></p></div><ul class="rows">'+pub.players.map(function(p){return '<li class="row '+(p.alive?'':'dead')+'"><span class="nm">'+esc(p.name)+(p.id===me.id?' (tu)':'')+'</span><span class="rx"><span class="tag '+(p.team==='civile'?'vill':p.team==='white'?'spec':'lupi')+'">'+esc(p.rname||'')+(p.spn?' · '+esc(p.spn):'')+(p.word?' · '+esc(p.word):'')+(pub.pts&&pub.pts[p.id]?' · '+(pub.pts[p.id]>0?'+':'')+pub.pts[p.id]+' pt':'')+'</span></span></li>';}).join('')+'</ul>';
     }
-    if(ph!=='end'&&ph!=='cards')out+='<ul class="rows mt14">'+pub.players.map(function(p){return '<li class="row '+(p.alive?'':'dead')+'"><span class="nm">'+esc(p.name)+(p.id===me.id?' (tu)':'')+'</span><span class="rx">'+(p.rname?'<span class="tag spec">'+esc(p.rname)+'</span>':'')+'</span></li>';}).join('')+'</ul>';
+    if(ph!=='end'&&ph!=='cards')out+='<ul class="rows mt14">'+pub.players.map(function(p){return '<li class="row '+(p.alive?'':'dead')+'"><span class="nm">'+esc(p.name)+(p.id===me.id?' (tu)':'')+'</span><span class="rx">'+(p.rname?'<span class="tag spec">'+esc(p.rname)+(p.spn?' · '+esc(p.spn):'')+'</span>':'')+'</span></li>';}).join('')+'</ul>';
     return out;
   }
 });
