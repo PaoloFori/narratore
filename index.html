@@ -153,6 +153,7 @@ h1,h2,h3,p{margin:0}
 .stepper .btn{min-height:40px;padding:6px 14px}
 .opt{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
 .opt:last-child{border-bottom:0}
+.opt .oi.sparts{width:52px;height:52px;background:transparent}
 .opt .oi{width:34px;height:34px;border-radius:10px;background:var(--surface2);display:grid;place-items:center;flex:none}
 .opt .oi svg{width:20px;height:20px}
 .opt .ot{flex:1;min-width:0}
@@ -468,6 +469,7 @@ var LIST=[
  {k:'intruso',n:'L’Intruso',i:'question',t:'Tutti ricevono la stessa domanda, tranne uno. Le sue risposte lo tradiranno?',m:'3–20 giocatori'},
  {k:'numero',n:'Indovina il numero',i:'hash',t:'Ognuno ha un numero segreto. Chi indovina fa domande e deve capire i numeri dalle risposte.',m:'3–20 giocatori'},
  {k:'pensiero',n:'Indovina cosa penso',i:'bulb',t:'Uno pensa a qualcosa. Gli altri fanno domande sì/no per scoprirlo.',m:'3–20 giocatori'},
+ {k:'chisono',n:'Chi sono?',i:'question',t:'Indovina il personaggio che sei con domande sì/no. Scelto dagli amici o a caso tra i famosi.',m:'2–24 giocatori'},
  {k:'spia',n:'La Spia',i:'spy',t:'Tutti conoscono il luogo, tranne la spia. Domande, sospetti e un timer.',m:'3–20 giocatori'}
 ];
 SERATA.hub=function(){
@@ -768,6 +770,8 @@ var SP={
  vend:{n:'La Vendicatrice',min:5,d:'Quando la Vendicatrice viene eliminata, può cacciare un altro giocatore a sua volta.'},
  duello:{n:'I Duellanti',min:5,pair:1,d:'Due giocatori sono in un duello segreto. Il primo ad essere eliminato perde 2 punti, l’altro ne vince 2.'}
 };
+var SPART={disfatto:'<path d="M10 20 L7 6 L17 14 L24 4 L31 14 L41 6 L38 20Z" fill="#e0405a"/><path d="M24 4 L31 14 L38 20 L24 20Z" fill="#3b6fd8"/><circle cx="7" cy="6" r="3" fill="#ffd23f"/><circle cx="24" cy="4" r="3" fill="#ffd23f"/><circle cx="41" cy="6" r="3" fill="#ffd23f"/><ellipse cx="24" cy="29" rx="11" ry="12" fill="#f6c9a0"/><path d="M10 20h28v4H10z" fill="#ffd23f"/><circle cx="20" cy="29" r="1.800" fill="#222"/><circle cx="28" cy="29" r="1.800" fill="#222"/><path d="M19 35q5 4 10 0" stroke="#222" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="17" cy="33" r="2" fill="#f08a8a"/><circle cx="31" cy="33" r="2" fill="#f08a8a"/>',boomerang:'<path d="M8 40 Q6 10 30 8 L42 6 Q40 16 34 20 Q24 24 20 30 Q18 38 8 40Z" fill="#f2a43a" stroke="#8a4b10" stroke-width="2" stroke-linejoin="round"/><path d="M12 34 Q12 18 30 14" stroke="#d6403a" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="16" cy="28" r="2" fill="#1d8a8a"/><circle cx="22" cy="19" r="2" fill="#1d8a8a"/>',dea:'<path d="M24 6v32M12 38h24" stroke="#2fbf7a" stroke-width="3.500" stroke-linecap="round"/><path d="M8 14h32" stroke="#2fbf7a" stroke-width="3" stroke-linecap="round"/><path d="M8 14l-5 12h10zM40 14l-5 12h10z" fill="#e8d28a" stroke="#2fbf7a" stroke-width="2" stroke-linejoin="round"/><path d="M3 26q5 5 10 0M35 26q5 5 10 0" stroke="#2fbf7a" stroke-width="2" fill="none"/><circle cx="24" cy="8" r="3.500" fill="#e8d28a" stroke="#2fbf7a" stroke-width="2"/>',fantasma:'<path d="M8 42V22C8 11 15 5 24 5s16 6 16 17v20l-5.500-4-5.500 4-5-4-5 4-5.500-4z" fill="#fff" stroke="#9db4d6" stroke-width="2" stroke-linejoin="round"/><ellipse cx="19" cy="22" rx="2.500" ry="3.500" fill="#222"/><ellipse cx="29" cy="22" rx="2.500" ry="3.500" fill="#222"/><ellipse cx="24" cy="30" rx="2.500" ry="3" fill="#222"/>',amanti:'<circle cx="16" cy="22" r="9" fill="#f6c9a0"/><path d="M7 20q2-11 11-10 6 1 7 6-7 0-13 5z" fill="#6b3b22"/><circle cx="32" cy="22" r="9" fill="#f6c9a0"/><path d="M23 18q1-8 9-8 8 0 9 9-1-4-6-3-8 0-12 2z" fill="#e0a02a"/><circle cx="13" cy="23" r="1.500" fill="#222"/><circle cx="19" cy="23" r="1.500" fill="#222"/><circle cx="29" cy="23" r="1.500" fill="#222"/><circle cx="35" cy="23" r="1.500" fill="#222"/><path d="M24 44c-9-6-10-10-10-12a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 2-1 6-10 12z" fill="#ff4f7b" transform="translate(0 -3)"/>',mimo:'<ellipse cx="24" cy="22" rx="11" ry="12" fill="#fff" stroke="#222" stroke-width="2"/><path d="M12 14q12-14 24 0-12-4-24 0z" fill="#5560a8"/><ellipse cx="34" cy="8" rx="6" ry="3" fill="#5560a8"/><circle cx="20" cy="22" r="1.800" fill="#222"/><circle cx="28" cy="22" r="1.800" fill="#222"/><path d="M20 29q4 3 8 0" stroke="#d6403a" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M8 46c0-8 6-10 16-10s16 2 16 10z" fill="#fff" stroke="#222" stroke-width="2"/><path d="M12 40h24M10 44h28" stroke="#222" stroke-width="3"/><path d="M20 34l4 3 4-3" stroke="#d6403a" stroke-width="2.500" fill="none"/>',falafel:'<path d="M14 14h20l-3-9H17z" fill="#d6403a"/><path d="M24 5v-3" stroke="#222" stroke-width="2"/><rect x="13" y="13" width="22" height="3.500" rx="1.500" fill="#a82a28"/><ellipse cx="24" cy="26" rx="10" ry="11" fill="#f6c9a0"/><circle cx="20" cy="24" r="1.600" fill="#222"/><circle cx="28" cy="24" r="1.600" fill="#222"/><path d="M15 29q4-3 9 0 5-3 9 0-1 4-9 3-8 1-9-3z" fill="#5a3418"/><path d="M10 46c0-8 6-9 14-9s14 1 14 9z" fill="#fff" stroke="#bbb" stroke-width="1.500"/><circle cx="38" cy="38" r="5" fill="#d99a3a" stroke="#8a5a1a" stroke-width="1.500"/><circle cx="9" cy="40" r="4" fill="#d99a3a" stroke="#8a5a1a" stroke-width="1.500"/>',vend:'<path d="M6 44q4-18 18-18 14 0 18 18z" fill="#c43cc4"/><ellipse cx="24" cy="18" rx="10" ry="11" fill="#f6c9a0"/><path d="M13 16q1-12 11-12 10 0 11 12-11-3-22 0z" fill="#1c2a44"/><path d="M13 17h22v5q-11 3-22 0z" fill="#27d3d3" stroke="#0f6d6d" stroke-width="1.500"/><circle cx="19" cy="19.500" r="1.500" fill="#fff"/><circle cx="29" cy="19.500" r="1.500" fill="#fff"/><path d="M17 41v-9h14v9z" fill="#27d3d3"/><path d="M24 33l2 3-2 3-2-3z" fill="#ffd23f"/>',duello:'<circle cx="14" cy="26" r="8" fill="#f6c9a0"/><path d="M4 22h20l-3-6q-7-6-14 0z" fill="#a8672a"/><rect x="2" y="21" width="24" height="3.500" rx="1.700" fill="#7a4518"/><circle cx="34" cy="26" r="8" fill="#f6c9a0"/><path d="M24 22h20l-3-6q-7-6-14 0z" fill="#8a4a1e"/><rect x="22" y="21" width="24" height="3.500" rx="1.700" fill="#5e3014"/><circle cx="11" cy="28" r="1.400" fill="#222"/><circle cx="17" cy="28" r="1.400" fill="#222"/><circle cx="31" cy="28" r="1.400" fill="#222"/><circle cx="37" cy="28" r="1.400" fill="#222"/><path d="M10 40l12 6M38 40L26 46" stroke="#cfd6e0" stroke-width="3" stroke-linecap="round"/><path d="M12 36l-3 7M36 36l3 7" stroke="#d6403a" stroke-width="3" stroke-linecap="round"/>'};
+function spArt(k,z){return '<svg viewBox="0 0 48 48" width="'+(z||44)+'" height="'+(z||44)+'" aria-hidden="true">'+(SPART[k]||'')+'</svg>';}
 var SPORD=['disfatto','boomerang','dea','fantasma','amanti','mimo','falafel','vend','duello'];
 var FALAFEL=['Doppio voto: il tuo voto vale per due.','Veto: una volta puoi annullare il voto contro di te.','Spia: chiedi al Narratore se un giocatore ha la tua stessa parola.','Silenzio: una volta puoi far saltare il turno di un giocatore.','Scambio: una volta puoi dire la tua parola come seconda parola.','Immunità: sei salvo dal primo voto contro di te.'];
 function spNeed(g){var t=0;SPORD.forEach(function(k){if(g.sp&&g.sp[k]&&!SP[k].game)t+=SP[k].pair?2:1;});return t;}
@@ -814,7 +818,7 @@ SERATA.games.mrwhite=SERATA.party({
     +step('Infiltrati','Hanno una parola simile ma diversa, e non sanno di esserlo.',k.under,'um','up')
     +step('Mister White','Non ha nessuna parola.',k.white,'wm','wp')
     +'<p class="hint">'+(g.auto?'Numeri automatici in base ai giocatori.':'Numeri impostati a mano. <button class="lnk" data-a="mwAuto">Torna ad Auto</button>')+'</p></div></section>'
-    +'<section class="blk"><div class="blkh"><h2>Ruoli speciali</h2></div><div class="card">'+SPORD.map(function(key){var r=SP[key],ok=n>=r.min;return '<div class="opt"><div class="ot"><b>'+esc(r.n)+'</b><small>'+esc(r.d)+(ok?'':' (dai '+r.min+' giocatori in su)')+'</small></div><label class="sws"><input type="checkbox" data-a="mwSp" data-k="'+key+'" '+(g.sp&&g.sp[key]&&ok?'checked':'')+(ok?'':' disabled')+' aria-label="'+esc(r.n)+'"><span></span></label></div>';}).join('')+'</div></section>';
+    +'<section class="blk"><div class="blkh"><h2>Ruoli speciali</h2></div><div class="card">'+SPORD.map(function(key){var r=SP[key],ok=n>=r.min;return '<div class="opt"><div class="oi sparts">'+spArt(key,48)+'</div><div class="ot"><b>'+esc(r.n)+'</b><small>'+esc(r.d)+(ok?'':' (dai '+r.min+' giocatori in su)')+'</small></div><label class="sws"><input type="checkbox" data-a="mwSp" data-k="'+key+'" '+(g.sp&&g.sp[key]&&ok?'checked':'')+(ok?'':' disabled')+' aria-label="'+esc(r.n)+'"><span></span></label></div>';}).join('')+'</div></section>';
   },
   problem:function(S){
     var n=S.players.length,k=mwCnt(S);
@@ -873,7 +877,7 @@ SERATA.games.mrwhite=SERATA.party({
     if(ph==='result'){
       var body;
       if(!g.outs.length)body='<div class="calm">Nessuno viene eliminato.</div>';
-      else body='<div class="deaths">'+g.outs.map(function(id){var q=P(id);return '<div class="death"><div><b>'+esc(q.name)+'</b><small>'+(q.role==='white'?'Mister White':q.role==='under'?'Era un infiltrato':'Era un civile')+(q.sp?' · '+esc(SP[q.sp].n):'')+'</small></div></div>';}).join('')+'</div>';
+      else body='<div class="deaths">'+g.outs.map(function(id){var q=P(id);return '<div class="death"><div><b>'+esc(q.name)+'</b><small>'+(q.role==='white'?'Mister White':q.role==='under'?'Era un infiltrato':'Era un civile')+(q.sp?' · '+esc(SP[q.sp].n):'')+'</small></div>'+(q.sp?'<span class="rx">'+spArt(q.sp,36)+'</span>':'')+'</div>';}).join('')+'</div>';
       body+=g.notes.map(function(t){return '<div class="spell">'+ico('mask',22)+'<span>'+esc(t)+'</span></div>';}).join('');
       return stats+'<h1 class="big">Il verdetto</h1>'+body+'<div class="bar"><button class="btn pri block" data-a="mwNext">'+(g.winner?'Scopri com’è finita':'Prossimo giro')+'</button></div>';
     }
@@ -944,6 +948,80 @@ SERATA.games.mrwhite=SERATA.party({
     return out;
   }
 });
+
+var CHARS='Leonardo da Vinci,Albert Einstein,Cleopatra,Napoleone,Giulio Cesare,Dante Alighieri,Cristoforo Colombo,Galileo Galilei,Marie Curie,Michael Jackson,Freddie Mercury,Elvis Presley,Madonna,Beyoncé,Lady Gaga,Vasco Rossi,Laura Pausini,Adriano Celentano,Cristiano Ronaldo,Lionel Messi,Diego Maradona,Francesco Totti,Valentino Rossi,Usain Bolt,Michael Jordan,Roger Federer,Rafael Nadal,Serena Williams,Jovanotti,Checco Zalone,Roberto Benigni,Totò,Sophia Loren,Marilyn Monroe,Charlie Chaplin,Audrey Hepburn,Brad Pitt,Leonardo DiCaprio,Johnny Depp,Tom Cruise,Chiara Ferragni,Mark Zuckerberg,Elon Musk,Bill Gates,Steve Jobs,Papa Francesco,Madre Teresa,Gandhi,Nelson Mandela,Martin Luther King,Barack Obama,Regina Elisabetta,Principe William,Mario,Luigi,Pikachu,Sonic,Batman,Superman,Spider-Man,Iron Man,Hulk,Wonder Woman,Harry Potter,Hermione,Gandalf,Darth Vader,Yoda,Shrek,Ciuchino,Topolino,Paperino,Pluto,Elsa,Simba,Nemo,Woody,Buzz Lightyear,Homer Simpson,Bart Simpson,SpongeBob,Peppa Pig,Pinocchio,Cenerentola,Biancaneve,Capitan Uncino,Sherlock Holmes,James Bond,Lupin,Goku,Naruto,Doraemon,Asterix,Super Pippo,Winnie the Pooh,Dracula,Babbo Natale'.split(',');
+
+/* ===================== CHI SONO? ===================== */
+SERATA.games.chisono=SERATA.party({
+  key:'chisono',name:'Chi sono?',icon:'question',
+  lead:'A ognuno viene assegnato un personaggio che conoscono tutti tranne lui. Con domande a cui si può rispondere solo sì o no, bisogna indovinare chi si è.',
+  fresh:function(){return {src:'random',chars:{},done:{},order:[]};},
+  again:function(S){return {src:S.g.src,chars:{},done:{},order:[]};},
+  setup:function(S,c){
+    var g=S.g,h='<section class="blk"><div class="blkh"><h2>Da dove arrivano i personaggi?</h2></div><div class="card"><div class="opt"><div class="ot"><b>Scelta</b><small>'+(g.src==='write'?'Gli altri scrivono il personaggio di ciascuno.':'Il personaggio viene estratto a caso tra personaggi famosi.')+'</small></div></div><div class="stepper" style="margin-top:8px"><button class="btn'+(g.src==='random'?' pri':'')+'" data-a="csSrc" data-k="random">A caso</button><button class="btn'+(g.src==='write'?' pri':'')+'" data-a="csSrc" data-k="write">Li scrivono gli altri</button></div></div></section>';
+    if(g.src==='write'&&S.players.length){
+      h+='<section class="blk"><div class="blkh"><h2>Scegli i personaggi</h2></div><div class="card"><p class="hint">Passate il telefono: scrivi il personaggio per la persona indicata, senza farglielo vedere. Poi nascondi lo schermo.</p>'
+      +S.players.map(function(p){return '<div class="opt"><div class="ot"><b>Per '+esc(p.name)+'</b></div><input id="cs_'+p.id+'" class="field" type="text" maxlength="40" autocomplete="off" placeholder="Personaggio" value="'+esc(g.chars[p.id]||'')+'"></div>';}).join('')+'</div></section>';
+    }
+    return h;
+  },
+  problem:function(S){
+    var g=S.g,n=S.players.length;
+    if(n<2)return 'Servono almeno 2 persone.';
+    if(g.src==='write'&&S.players.some(function(p){return !String(g.chars[p.id]||'').trim();}))return 'Scrivi un personaggio per ogni giocatore.';
+    if(g.src==='random'&&n>CHARS.length)return 'Troppi giocatori.';
+    return '';
+  },
+  deal:function(S){
+    var g=S.g;g.done={};g.order=[];
+    if(g.src==='random'){var pool=shuffle(CHARS.slice());g.chars={};S.players.forEach(function(p){g.chars[p.id]=pool.pop();});}
+  },
+  begin:function(S){S.phase='play';},
+  card:function(S,p){
+    var o=S.players.filter(function(x){return x.id!==p.id;}).map(function(x){return x.name+': '+S.g.chars[x.id];}).join(' · ');
+    return {ico:'question',title:'Il tuo personaggio',big:'Non lo vedi!',sub:'Gli altri lo conoscono. Fai domande sì/no per indovinare.',text:'Personaggi degli altri: '+o};
+  },
+  pubPlayer:function(S,p){var x={done:!!S.g.done[p.id]};if(S.phase==='end')x.chr=S.g.chars[p.id];return x;},
+  pub:function(S){return {order:S.g.order.slice()};},
+  view:function(S,c){
+    var g=S.g,ph=S.phase,left=S.players.filter(function(p){return !g.done[p.id];}).length;
+    if(ph==='play'){
+      var sh=c.T.cs;
+      return '<div class="stats"><span>Ancora in gioco '+left+'</span></div><h1 class="h1">Chi sono?</h1><p class="lead">Si fa a turno una domanda sì/no. Quando qualcuno indovina, segnalo. «Vedi» mostra il personaggio: nascondi lo schermo a chi lo sta cercando!</p><ul class="rows">'
+      +S.players.map(function(p){var d=g.done[p.id],sw=sh===p.id;return '<li class="row '+(d?'dead':'')+'"><span class="nm">'+esc(p.name)+(d?' '+ico('check',14):'')+(sw?'<small style="display:block;opacity:.85">'+esc(g.chars[p.id])+'</small>':'')+'</span><span class="rx"><button class="btn" data-a="csSee" data-id="'+p.id+'">'+ico('eye')+(sw?'Nascondi':'Vedi')+'</button><button class="btn'+(d?'':' pri')+'" data-a="csDone" data-id="'+p.id+'">'+(d?'Annulla':'Indovinato')+'</button></span></li>';}).join('')
+      +'</ul><div class="bar"><button class="btn pri block" data-a="csEnd">'+(left===0?'Scopri com’è finita':'Finisci la partita')+'</button></div>';
+    }
+    if(ph==='end')return csEnd(S,false);
+    return '';
+  },
+  act:function(a,d,c){
+    var S=c.S,g=S.g;
+    switch(a){
+      case 'csSrc':g.src=d.k==='write'?'write':'random';return c.commit();
+      case 'csSee':{var id=+d.id;c.T.cs=c.T.cs===id?null:id;return c.render();}
+      case 'csDone':{var i=+d.id;if(g.done[i]){delete g.done[i];g.order=g.order.filter(function(x){return x!==i;});}else{g.done[i]=true;g.order.push(i);}
+        if(S.players.every(function(p){return g.done[p.id];})){c.T.cs=null;S.phase='end';}
+        return c.commit();}
+      case 'csEnd':c.T.cs=null;S.phase='end';return c.commit();
+    }
+  },
+  input:function(el,c){if(el.id&&el.id.indexOf('cs_')===0)c.S.g.chars[+el.id.slice(3)]=el.value;},
+  pview:function(c,pub,card,me){
+    var ph=pub.phase,pr=function(id){return pub.players.find(function(x){return x.id===id;});};
+    if(ph==='cards')return '<p class="hint">Quando tutti hanno visto la propria carta, il Narratore inizia.</p>';
+    if(ph==='play'||ph==='end'){
+      return '<h1 class="h1 mt14">'+(ph==='end'?'Com’è finita':'Chi sono?')+'</h1><ul class="rows mt14">'+pub.players.map(function(p){var ix=pub.order.indexOf(p.id);return '<li class="row '+(p.done?'dead':'')+'"><span class="nm">'+esc(p.name)+(p.id===me.id?' (tu)':'')+'</span><span class="rx">'+(p.chr?'<span class="tag spec">'+esc(p.chr)+'</span> ':'')+(p.done?'<span class="chip">'+(ix+1)+'°</span>':'')+'</span></li>';}).join('')+'</ul>';
+    }
+    return '';
+  }
+});
+function csEnd(S,pub){
+  var g=S.g,rk=function(id){return g.order.indexOf(id);};
+  var l=S.players.slice().sort(function(a,b){var x=rk(a.id),y=rk(b.id);if(x<0)x=999;if(y<0)y=999;return x-y;});
+  return '<div class="banner vill"><h1 class="big">Partita finita</h1><p>'+g.order.length+' su '+S.players.length+' hanno indovinato.</p></div><div class="blkh mt20"><h2>Chi era chi</h2></div><ul class="rows">'
+  +l.map(function(p){var r=rk(p.id);return '<li class="row"><span class="nm">'+esc(p.name)+'</span><span class="rx"><span class="tag '+(r>=0?'vill':'lupi')+'">'+esc(g.chars[p.id])+'</span>'+(r>=0?' <span class="chip">'+(r+1)+'°</span>':'')+'</span></li>';}).join('')
+  +'</ul><div class="bar"><button class="btn" data-a="again">Stessi giocatori</button><button class="btn pri" data-a="newgame">Nuova partita</button></div>';
+}
 
 /* ===================== LA SPIA ===================== */
 var PLACES=['Aeroporto','Ospedale','Scuola','Cinema','Ristorante','Spiaggia','Supermercato','Banca','Stazione dei treni','Teatro','Biblioteca','Palestra','Zoo','Luna park','Chiesa','Hotel','Nave da crociera','Sottomarino','Stazione spaziale','Circo','Fattoria','Pizzeria','Discoteca','Università','Museo','Parco','Castello','Prigione','Stadio','Autolavaggio','Campeggio','Pista da sci','Cantiere','Commissariato','Caserma dei pompieri','Matrimonio','Festa di compleanno','Studio televisivo','Set cinematografico','Piscina','Mercato','Lavanderia'];

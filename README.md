@@ -45,3 +45,10 @@ Uno pensa a qualcosa. Gli altri fanno domande sì/no per scoprirlo.
 
 ### La Spia (3–20 giocatori)
 Tutti conoscono il luogo in cui si trovano, tranne la spia. Ci si fanno domande a turno, con un timer. La spia cerca di capire il luogo, gli altri di smascherarla.
+
+### Chi sono? (2–24 giocatori)
+A ognuno viene assegnato un personaggio che conoscono tutti tranne lui. A turno si fanno domande a cui si può rispondere solo sì o no per indovinare chi si è. Due modalità:
+- **A caso:** il personaggio viene estratto tra circa 100 personaggi famosi (storici, sportivi, cantanti, attori, cartoni, film e fumetti).
+- **Li scrivono gli altri:** per ogni giocatore, un altro scrive il personaggio nella schermata di preparazione (passandosi il telefono, senza farlo vedere all'interessato).
+
+Durante la partita il Narratore segna chi ha indovinato e può mostrare un personaggio con «Vedi» (nascondendo lo schermo a chi lo cerca). Alla fine c'è la classifica in ordine di indovinata.
