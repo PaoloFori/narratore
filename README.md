@@ -4,16 +4,17 @@ Giochi da raccontare per serate in compagnia. L'app tiene il conto di tutto e gu
 
 ## 🌐 Dove si gioca
 
-**https://paolofori.github.io/narratore**
+**[https://paolofori.github.io/narratore](https://paolofori.github.io/narratore)**
 
 Apri il link dal telefono (o dal browser) e scegli il gioco. Si può installare come app dal menu del browser ("Aggiungi a schermata Home").
 
 ## Come si gioca
 
-All'inizio di ogni partita scegli la modalità:
+Si gioca con **un solo telefono**, quello del Narratore: aggiungi i giocatori, distribuisci le carte e passa il telefono di mano in mano. Ognuno scopre la propria carta, la nasconde e passa al successivo.
 
-- **Con il mio telefono**: un solo telefono, che passi di mano in mano per mostrare a ciascuno la propria carta.
-- **Ognuno col suo telefono**: ogni giocatore vede la propria carta sul suo telefono. Tu ricevi un codice stanza da dare a tutti. Questa modalità funziona solo nella versione collegata a Claude (artefatto), non in quella installata.
+In basso a sinistra ci sono due pulsanti, entrambi a doppio tocco per evitare errori:
+- **Griglia (home):** torna al menu dei giochi. La partita resta salvata e la riprendi riaprendo il gioco.
+- **Cestino (elimina partita):** cancella la partita in corso, anche senza finirla, e ricomincia da zero.
 
 L'app è disponibile in italiano e in inglese.
 
